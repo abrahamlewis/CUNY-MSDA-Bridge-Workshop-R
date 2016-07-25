@@ -1,0 +1,41 @@
+---
+title: "Week2 Assignment"
+author: "Ahsanul Choudhury"
+date: "July 22, 2016"
+output: html_document
+---
+
+#Choose-function.R
+
+
+choosefn <- function (n, r) {
+#error handling
+if (!is.numeric(n) || !is.numeric(r) || (n <=0) ||(r <=0)) {
+#Godbey, Robert. "R Week 2 Assignment." N.p., 08 July 2015. Web. 20 July 2016. <https%3A%2F%2Frstudio-pubs-static.s3.amazonaws.com%2F92225_9d4e356055be4f459b2c666c7ff9ac0e.html>.
+
+result <- "both numbers have to be greater than zero"
+} else if (n < r) {
+                   result <- "n cannot be smaller than r"
+                  } else {
+                          nfac <- prod (1:n)
+                          rfac <- prod(1:r)
+                          if (n == r) {
+                          # since (n - r)! = 0! = 1
+                          nmrfac <- 1
+                          } else {
+                          nmrfac <- prod(1:(n-r))
+                                 }
+                          c <- nfac / (nmrfac  *rfac)
+                          result <- paste (n, "choose", r, "=", c)
+                          }
+ return (result)
+}
+
+choosefn (5, 3)
+
+choosefn (2, 5)
+
+choosefn (6, 6)
+
+choosefn (7, 0)
+
