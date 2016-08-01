@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+author: "Ahsanul Choudhury"
+date: "July 31, 2016"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#install.packages("RCurl")
+
+library(RCurl)
+
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
+
+mushrooms <- getURL(url)
+#getwd()
+mushrooms_df <- read.table(url, header = FALSE,  sep = ",", stringsAsFactors = FALSE);
+
+mushrooms_df <- mushrooms_df[, c(1, 2, 3, 4, 6, 11, 12)]
+names(mushrooms_df) <- c("class", "cap-shape", "cap-surface", "cap-color", "odor", "stalk-shape", "stalk-root");
+
+#Data Tranform
+ClassData <- function(x){
+  switch (x,
+          'p' = 'poisonous',
+          'e' = 'edible'
+  )
+}
+
+
+CapShapeData <- function(x){
+  switch (x,
+          'b' = 'bell',
+          'c' = 'conical',
+          'x' = 'convex',
+          'f' = 'flat',
+          'k' = 'knobbed',
+          's' = 'sunken'
+  )
+}
+
+
+CapSurfaceData <- function(x){
+  switch (x,
+          'f' = 'fibrous',
+          'g' = 'grooves',
+          'y' = 'scaly',
+          's' = 'smooth'
+  )
+}
+
+
+CapColorData <- function(x){
+  switch (x,
+          'n' = 'brown',
+          'b' = 'buff',
+          'c' = 'cinnamon',
+          'g' = 'gray',
+          'r' = 'green',
+          'p' = 'pink',
+          'u' = 'purple',
+          'e' = 'red',
+          'w' = 'white',
+          'y' = 'yellow'
+  )
+}
+
+
+OdorData <- function(x){
+  switch (x,
+          'a' = 'almond',
+          'l' = 'anise',
+          'c' = 'creosote',
+          'y' = 'fishy',
+          'f' = 'foul',
+          'm' = 'musty',
+          'n' = 'none',
+          'p' = 'pungent',
+          's' = 'spicy'
+  )
+}
+
+
+stalkshapeData <- function(x){
+  switch (x,
+          'e' = 'enlarging',
+          't' = 'tapering',
+          
+  )
+}
+
+stalkrootData <- function(x){
+  switch (x,
+          'b' = 'bulbous',
+          'c' = 'club',
+          'u' = 'cup',
+          'e' = 'equal',
+          'z' = 'rhizomorphs',
+          'r' = 'rooted',
+          '?' = 'missing'
+  )
+}
+
+mushrooms_df$class <- sapply(mushrooms_df$class, ClassData);
+mushrooms_df$`cap-shape` <- sapply(mushrooms_df$`cap-shape`, CapShapeData);
+mushrooms_df$`cap-color` <- sapply(mushrooms_df$`cap-color`, CapColorData);
+mushrooms_df$`cap-surface` <- sapply(mushrooms_df$`cap-surface`, CapSurfaceData);
+mushrooms_df$odor <- sapply(mushrooms_df$odor, OdorData);
+mushrooms_df$`stalk-shape` <- sapply(mushrooms_df$`stalk-shape`, stalkshapeData);
+mushrooms_df$`stalk-root` <- sapply(mushrooms_df$`stalk-root`, stalkrootData);
+
+head(mushrooms_df)
