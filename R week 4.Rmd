@@ -1,0 +1,65 @@
+---
+title: "Aircraft Data"
+author: "Ahsanul Choudhury"
+date: "August 7, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Aircraft Data
+
+#Description
+
+#Aircraft Data, deals with 23 single-engine aircraft built over the years 1947-1979, from Office of Naval Research. The dependent variable is cost (in units of \$100,000) and the explanatory variables are aspect ratio, lift-to-drag ratio, weight of plane (in pounds) and maximal thrust.
+
+#Source: http://vincentarelbundock.github.io/Rdatasets/datasets.html
+
+#required packages
+```{r packages, include=TRUE}
+require(ggplot2)
+library(ggplot2)
+require(RCurl)
+library(RCurl)
+```
+
+#pulling data
+```{r data, include=TRUE}
+url <- getURL("https://raw.githubusercontent.com/choudhury1023/CUNY-MSDA-Bridge-Workshop-R/master/aircraft.csv")
+aircraft <- read.csv(text = url)
+aircraft <- aircraft[,c(2:6)]
+```
+#rename columns
+```{r rename, include=TRUE}
+names(aircraft) <- c("aspect_ratio", "lift_to_drag_ratio", "weight", "maximal_thrust","cost")
+head(aircraft)
+```
+#Generate summary level descriptive statistics
+```{r summary, include=TRUE}
+summary(aircraft)
+```
+
+#R graphics
+
+#Histogram for Aspect Ratio
+```{r histA, include=TRUE}
+qplot(aspect_ratio, data = aircraft, geom="histogram", ,binwidth = 0.5,main = "Histogram for Aspect Ratio", xlab = "Aspect Ratio", fill=I("blue"), col=I("black"), xlim=c(1, 7))
+```
+
+#Histogram for Lift to Drag Ratio
+```{r histL, include=TRUE}
+qplot(lift_to_drag_ratio, data = aircraft, geom="histogram", ,binwidth = 0.5,main = "Histogram for Lift to Darg Ratio", xlab = "Lift to Drag Ratio", fill=I("green"), col=I("black"), xlim=c(1, 10))
+```
+
+#Boxplot for Cost
+```{r boxC, include=TRUE}
+ggplot(aircraft, aes(y = cost, x = 1)) + geom_boxplot(fill = "yellow")
+```
+
+#Scatter plot for Weight and Maximal Thrust
+```{r scattwt, include=TRUE}
+ggplot(aircraft, aes(weight, maximal_thrust))+ geom_point(aes(colour = I("red")))
+#A relationship is visible, havier aircrafts are likely to have more thrust 
+```
