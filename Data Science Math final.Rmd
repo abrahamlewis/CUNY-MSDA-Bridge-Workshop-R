@@ -1,0 +1,245 @@
+---
+title: "Bridge Math Final"
+author: "Ahsanul Choudhury"
+date: "August 10, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, include=TRUE}
+#install.packages("hflights")
+
+#loading requird packages
+require (hflights)
+require (ggplot2)
+head (hflights)
+```
+
+#Define Variables
+```{r variables, include=TRUE}
+#converting all the na values to zero for consistancy
+hflights$ArrDelay[ is.na( hflights$ArrDelay ) ] <- 0
+hflights$DepDelay[ is.na( hflights$DepDelay ) ] <- 0
+
+X <- hflights$ArrDelay
+Y <- hflights$DepDelay
+```
+
+#Generate summary level descriptive statistics
+```{r summary, include=TRUE}
+summary (X)
+
+summary (Y)
+
+
+Xtotal <- length(X) - 3622
+Xtotal
+
+Ytotal <- length(Y) - 2905
+Ytotal
+```
+
+
+#Density plot for X and Y
+```{r histA, include=TRUE}
+ggplot(hflights, aes(X)) +
+  geom_density()
+
+ggplot(hflights, aes(Y)) +
+  geom_density()
+```
+
+#'x' as 3d quartile of 'X' and 'y' as 2d quartile 'Y'
+```{r quartile, include=TRUE}
+x <- quantile(X, .75)
+x
+
+y <- quantile(Y, .5)
+y
+```
+
+
+#Table of counts
+```{r table, include=TRUE}
+a <- nrow(subset(hflights, X <= x & Y <= y));
+a;
+
+b <- nrow(subset(hflights, X <= x & Y > y));
+b;
+
+c <- nrow(subset(hflights, X > x & Y <= y));
+c;
+
+d <- nrow(subset(hflights, X > x & Y > y));
+d;
+
+
+values <- matrix(c(a,b,(a+b),c,d,(c+d),(a+c),(b+d),(a+b+c+d)),ncol=3, nrow=3,byrow=TRUE)
+colnames(values) <- c("<=2d quartile",">2d quartile","Total")
+rownames(values) <- c('<=3d quartile', '>3d quartile','Total')
+values.table <- as.table(values)
+values.table
+```
+
+# a. P(X>x | Y>y)         b.  P(X>x, Y>y)         c.  P(X<x | Y>y)
+```{r sol1, include=TRUE}
+# a. P(X>x | Y>y)
+48548/109996
+
+# b.  P(X>x, Y>y)
+48548/227496
+
+#c.  P(X<x | Y>y)
+(nrow(subset(hflights, X < x & Y > y)))/(nrow(subset(hflights, Y > y)))
+```
+
+#Does P(A | B) = P(A) * P(B)?
+```{r sol2, include=TRUE}
+#P(A | B) = P(X>x | Y>y)
+48548/109996
+#P(A)
+A <- nrow(subset(hflights, X > x))
+A
+
+pofA <- A/nrow(hflights)
+pofA
+
+#P(B)
+B <- nrow(subset(hflights, Y > y))
+B
+
+
+#P(A | B) is not equal to P(A) * P(B)
+pofB <- B/nrow(hflights)
+pofB
+#P(A) * P(B)
+p <- pofA * pofB
+p
+# P(A | B) = .4413 in not equal to P(A) * P(B) = .1163(X and Y variable are not independent)
+```
+
+```{r chi, include=TRUE}
+#Chi Squere Test for association
+
+chisq.test(X,Y)
+
+#We can see form the Chi Square test the p value is smaller than significance level of 0.05, we should reject the hypothesis that X (Arrival delay) and Y Departure dealy are independent
+```
+
+#scatterplot of the two variables
+```{r scatt, include=TRUE}
+qplot(X, Y, main = 'Relationship between Arrival dealay and Departure dalay',
+      xlab = 'Arrival Delay', ylab = 'Departure Delay')
+#Scatter plot indicates strong positive relationship between the two variable
+```
+
+#95% confidence interval for the difference in the mean
+```{r ttest, include=TRUE}
+t.test(X,Y)
+#95% confidence interval for the difference in mean -2.514811 to -2.171108. Values are negative because the mean of random variable X(6.981384) is smaller then mean of random variable Y(9.324344)
+```
+
+#correlation matrix for two of the quantitative variables 
+```{r cmatrix, include=TRUE}
+data <- cbind(X,Y)
+matrix <- cor(data, use = "complete")
+matrix
+```
+
+#Hypothesis test to see if correlation between these variables is 0 and provide a 99% confidence interval
+```{r hypotest, include=TRUE}
+cor.test(X,Y,conf.level=0.99)
+# 99% confidence interval is 0.924667 to 0.9262172. Correlation between X and Y is not zero, therefore the variables are not independent. Correlation coeffieient of 0.9254458 points to strong dependance.
+```
+
+
+#Invert the Correlation Matrix to Create the 'Precision Matrix'
+```{r invert, include=TRUE}
+pmatrix <- solve(matrix)
+pmatrix
+```
+
+#Multiply the Correlation Matrix by the Precision Matrix
+```{r multiply1, include=TRUE}
+matrix%*%pmatrix
+```
+#Multiply the Precision Matrix by the Correlation Matrix
+```{r multiply2, include=TRUE}
+pmatrix%*%matrix
+#The results of both multiplication are inverse of each other
+```
+
+#shift X so that the minimum value is above zero
+```{r shift, include=TRUE}
+Xshift  <- X+ abs(min(X)) + 1
+summary (Xshift)
+```
+
+#Load the MASS package
+```{r mass, include=TRUE}
+require(MASS)
+library(MASS)
+```
+
+#run fitdistr to fit an exponential probability density function
+```{r fitdistr, include=TRUE}
+Xexpo <- fitdistr(Xshift, "exponential")
+Xexpo
+```
+
+#Optimal value of lambda for the distribution
+```{r lambda, include=TRUE}
+1 / Xexpo$estimate
+```
+
+# 1000 samples from the exponential distribution
+```{r sample, include=TRUE}
+sampex <- rexp(1000, Xexpo$estimate)
+summary(sampex)
+```
+
+#Comparison of histogram of expotential sample with a histogram of original variable
+```{r histogram, include=TRUE}
+qplot(sampex, geom="histogram", binwidth = 5, fill=I("blue"), col=I("black"))
+qplot(X, geom="histogram", binwidth = 5, fill=I("blue"), col=I("black"))
+#The expotential sample appears to be less right skwed then the original
+```
+
+# 5th Percentile
+```{r fifth, include=TRUE}
+qexp(.05, rate = Xexpo$estimate, lower.tail = TRUE, log.p = FALSE)
+```
+
+#95th Percentile
+```{r 95th, include=TRUE}
+qexp(.95, rate = Xexpo$estimate, lower.tail = TRUE, log.p = FALSE)
+```
+
+
+#95% confidence interval from the empirical data, assuming normality
+```{r 95thconf, include=TRUE}
+meanX <- mean(na.omit(X)) # get the mean for X
+meanX
+sdX <- sqrt(var(na.omit(X)))
+sdX
+
+qnorm(.025, mean = meanX, sd = sdX)
+
+qnorm(.975, mean = meanX, sd = sdX)
+#If X is normally distributed 95% of the sample mean will be between -52.75051 and 66.71328
+```
+
+
+#The empirical 5th percentile and 95th percentile of the data
+```{r empirical, include=TRUE}
+#.05 quantile 
+quantile(X, .05, na.rm = TRUE)
+
+#.95 quantile
+quantile(X, .95, na.rm = TRUE)
+
+#GThe empirical 5th percentile and 95th percentil of the implies 90% of the sample X from original data falls between -18 and 56
+```
