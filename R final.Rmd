@@ -1,0 +1,99 @@
+---
+title: "R Final"
+author: "Ahsanul Choudhury"
+date: "August 13, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#birthwt(Risk Factors Associated with Low Infant Birth Weight)
+
+#Description
+
+#The birthwt data frame has 189 rows and 10 columns. The data were collected at Baystate Medical Center, Springfield, Mass during 1986.
+
+#Source: https://vincentarelbundock.github.io/Rdatasets/datasets.html
+
+#In this R project I will use the birthwt dataset to see if there is any raltionship between mother smoking during pregnancy and baby being under weight at birth.
+
+#required packages
+```{r packages, include=TRUE}
+require(ggplot2)
+library(ggplot2)
+require(RCurl)
+library(RCurl)
+```
+
+#pulling data
+```{r data, include=TRUE}
+url <- getURL("https://raw.githubusercontent.com/choudhury1023/CUNY-MSDA-Bridge-Workshop-R/master/birthwt.csv")
+birthwt <- read.csv(text = url)
+birthwt <- birthwt[,c(2, 6, 11)]
+```
+
+#rename columns
+```{r rename, include=TRUE}
+names(birthwt) <- c("under_weight", "smoker", "birth_weight")
+head(birthwt)
+```
+
+#change values
+```{r values, include=TRUE}
+birthwt$smoker <- factor(c("No", "Yes")[birthwt$smoker + 1])
+birthwt$under_weight <- factor(c("No", "Yes")[birthwt$under_weight + 1])
+summary(birthwt)
+```
+
+#boxplot for birth weight
+```{r boxbw, include=TRUE}
+ggplot(birthwt, aes(1, birth_weight)) + geom_boxplot(aes(fill = factor(smoker)))
+```
+
+#histogrm for birth wight distribution
+```{r histbw, include=TRUE}
+ggplot(birthwt, aes(x=birth_weight, fill=smoker)) + geom_histogram(binwidth=100)
+```
+
+#add column to identify rows containing somker mother and under weight child
+```{r addcolumn, include=TRUE}
+birthwt$smokerunderwt <-  birthwt$smoker=="Yes" & birthwt$under_weight=="Yes"
+birthwt
+```
+
+#filtering out rows non smoker
+```{r smoker, include=TRUE}
+smokerwt <- birthwt$smoker== "Yes"
+S <- birthwt[smokerwt,]
+S
+summary (S)
+```
+
+#find smoker mean weight manually
+```{r smean, include=TRUE}
+smean <- mean(subset(birthwt$birth_weight, birthwt$smoker== "Yes"))
+smean
+```
+#filtering out rows smoker
+```{r nonsmoker, include=TRUE}
+nonsmokerwt <- birthwt$smoker== "No" 
+N <- birthwt[nonsmokerwt,]
+N
+summary (N)
+```
+
+#find non smoker mean weight manually
+```{r nonsmean, include=TRUE}
+nonsmean <- mean(subset(birthwt$birth_weight, birthwt$smoker=="No"))
+nonsmean
+```
+
+#t.test
+```{r ttest, include=TRUE}
+t.test (birthwt$birth_weight[birthwt$smoker == "Yes"], 
+        birthwt$birth_weight[birthwt$smoker == "No"])
+#the t.test shows the diffrence of mean is 170.1 and a p-value of 0.007003 which is lowr than 0.05, we will reject null hypothesis and take alternative hypothesis. In conclusion we can say there is a relationshipe between mother smoking during pregnancy and baby being under weight at birth.
+```
+
